@@ -131,7 +131,8 @@
 
     .group-option-link {
       display: flex;
-      align-items: center;
+      align-items: center; /* Vertically center icon and text */
+      justify-content: flex-start; /* Ensure text is left-aligned */
       padding: 0.75rem 1rem;
       background-color: rgba(255, 255, 255, 0.05);
       border-radius: 8px;
@@ -144,14 +145,15 @@
       font-weight: 300;
     }
 
-    .group-option-link:hover, .group-option-link:focus {
-      background-color: rgba(255, 255, 255, 0.1);
-      outline: none;
-    }
-
     .group-option-link i {
       margin-right: 10px;
       color: white;
+      flex-shrink: 0; /* Ensure icon doesn't shrink */
+    }
+
+    .group-option-link:hover, .group-option-link:focus {
+      background-color: rgba(255, 255, 255, 0.1);
+      outline: none;
     }
 
     .group-label {
@@ -238,8 +240,88 @@
     </div>
   </nav>
 
-  <script src="./script.js"></script> <!-- Link your script.js file -->
+  <script>
+    const commandMenu = document.querySelector('.command-menu');
+    const searchInput = document.querySelector('.command-menu-search');
+    const links = document.querySelectorAll('.group-option-link');
+    let activeIndex = -1;
+
+    // Show/hide command palette on Cmd+K or Ctrl+K
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        commandMenu.classList.toggle('active');
+        if (commandMenu.classList.contains('active')) {
+          searchInput.focus();
+        } else {
+          searchInput.blur();
+          resetSearch(); // Reset search when closing the palette
+        }
+      }
+    });
+
+    // Search filter functionality
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      filterLinks(searchTerm);
+    });
+
+    // Handle ArrowDown to move from input field to first item
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault(); // Prevent cursor from moving in input
+        moveFocus(1); // Move to first visible item
+      }
+    });
+
+    // Filter the command options based on search input
+    function filterLinks(searchTerm) {
+      links.forEach(link => {
+        const linkText = link.textContent.toLowerCase();
+        if (linkText.includes(searchTerm)) {
+          link.style.display = 'flex'; // Ensure flex layout for filtered elements
+        } else {
+          link.style.display = 'none';
+        }
+      });
+    }
+
+    // Keyboard navigation with arrow keys and Enter
+    document.addEventListener('keydown', (e) => {
+      if (commandMenu.classList.contains('active') && document.activeElement !== searchInput) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          moveFocus(1); // Move down
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          moveFocus(-1); // Move up
+        } else if (e.key === 'Enter' && activeIndex >= 0) {
+          e.preventDefault();
+          links[activeIndex].click(); // Simulate click on focused item
+        }
+      }
+    });
+
+    // Move focus to next or previous link
+    function moveFocus(direction) {
+      const visibleLinks = Array.from(links).filter(link => link.style.display !== 'none');
+      if (visibleLinks.length === 0) return; // No links to focus on
+
+      if (activeIndex >= 0) {
+        visibleLinks[activeIndex].classList.remove('focused');
+      }
+      activeIndex = (activeIndex + direction + visibleLinks.length) % visibleLinks.length;
+      visibleLinks[activeIndex].classList.add('focused');
+      visibleLinks[activeIndex].focus();
+    }
+
+    // Reset search and visibility
+    function resetSearch() {
+      searchInput.value = '';
+      links.forEach(link => {
+        link.style.display = 'flex'; // Ensure flex layout
+      });
+    }
+  </script>
 </body>
 </html>
-
-
