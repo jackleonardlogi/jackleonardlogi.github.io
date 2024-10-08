@@ -2,35 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CMD+K attempt</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome -->
+  <title>AI Command Palette Demo</title>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Include BrownPro-Light font -->
+  <style>
+    @font-face {
+      font-family: 'BrownPro-Light';
+      src: url('path/to/BrownPro-Light.ttf') format('truetype');
+      /* Replace 'path/to/BrownPro-Light.ttf' with the actual path to your font file */
+    }
+  </style>
+
   <style>
     /* General Styles */
     body {
-      font-family: 'Brown Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: 'BrownPro-Light', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       font-weight: 300;
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       height: 100vh;
       background-image: radial-gradient(at 40% 20%, hsla(28, 100%, 74%, 1) 0, transparent 50%),
                         radial-gradient(at 80% 0%, hsla(189, 100%, 56%, 1) 0, transparent 50%);
       background-repeat: no-repeat;
       background-size: cover;
       color: #fff;
-      text-align: center;
-      line-height: 1.6;
+      overflow: hidden;
     }
 
+    /* Command Palette Styles */
     .command-menu {
       display: flex;
       flex-direction: column;
       width: 100%;
-      max-width: 600px; /* Ensure max width on larger screens */
+      max-width: 600px;
       max-height: 70vh;
-      background-color: rgba(34, 34, 34, 0.85);
+      background-color: rgba(34, 34, 34, 0.95);
       border-radius: 1rem;
       overflow-y: auto;
       backdrop-filter: saturate(140%) blur(20px);
@@ -39,13 +46,17 @@
       transition: opacity 0.3s, transform 0.3s ease-in-out;
       opacity: 0;
       pointer-events: none;
-      transform: scale(0.9);
+      transform: translate(-50%, -50%) scale(0.9);
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 10;
     }
 
     .command-menu.active {
       opacity: 1;
       pointer-events: auto;
-      transform: scale(1);
+      transform: translate(-50%, -50%) scale(1);
     }
 
     .command-menu-header {
@@ -62,9 +73,9 @@
       border-radius: 8px;
       background-color: rgba(255, 255, 255, 0.1);
       color: white;
-      font-family: 'Brown Pro', sans-serif;
+      font-family: inherit;
       font-weight: 300;
-      padding-right: 130px; /* Room for "Ask AI" and "Tab" buttons */
+      padding-right: 130px;
       line-height: 1.25rem;
     }
 
@@ -77,7 +88,6 @@
       background-color: rgba(255, 255, 255, 0.2);
     }
 
-    /* "Tab" and "Ask AI" buttons */
     .search-label {
       position: absolute;
       right: 10px;
@@ -94,7 +104,7 @@
       color: #fff;
       padding: 0.5rem 1rem;
       border-radius: 0.5rem;
-      font-family: 'Brown Pro', sans-serif;
+      font-family: inherit;
       font-size: 0.875rem;
       font-weight: 400;
       backdrop-filter: blur(10px);
@@ -105,18 +115,8 @@
       background-color: rgba(255, 255, 255, 0.2);
     }
 
-    /* Command menu content and groups */
     .command-menu-content {
       margin-top: 1rem;
-    }
-
-    h2 {
-      font-size: 1.25rem;
-      color: #cccccc;
-      margin-bottom: 0.5rem;
-      letter-spacing: 0.05rem;
-      font-weight: bold;
-      font-family: 'Brown Pro', sans-serif;
     }
 
     ul {
@@ -131,8 +131,8 @@
 
     .group-option-link {
       display: flex;
-      align-items: center; /* Vertically center icon and text */
-      justify-content: flex-start; /* Ensure text is left-aligned */
+      align-items: center;
+      justify-content: flex-start;
       padding: 0.75rem 1rem;
       background-color: rgba(255, 255, 255, 0.05);
       border-radius: 8px;
@@ -141,17 +141,18 @@
       font-size: 1rem;
       letter-spacing: 0.02rem;
       transition: background-color 0.3s ease;
-      font-family: 'Brown Pro', sans-serif;
+      font-family: inherit;
       font-weight: 300;
     }
 
     .group-option-link i {
       margin-right: 10px;
       color: white;
-      flex-shrink: 0; /* Ensure icon doesn't shrink */
     }
 
-    .group-option-link:hover, .group-option-link:focus {
+    .group-option-link:hover,
+    .group-option-link:focus,
+    .group-option-link.focused {
       background-color: rgba(255, 255, 255, 0.1);
       outline: none;
     }
@@ -160,12 +161,145 @@
       font-size: 0.875rem;
       color: rgba(255, 255, 255, 0.6);
       margin-bottom: 0.5rem;
-      letter-spacing: 0.03rem;
-      font-family: 'Brown Pro', sans-serif;
+      font-family: inherit;
+    }
+
+    /* Code Editor Styles */
+    .code-editor {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 80vw;
+      height: 80vh;
+      background: #1e1e1e;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      padding: 1rem;
+      color: white;
+      overflow: auto;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      transform: translate(-50%, -50%);
+    }
+
+    .code-editor.active {
+      display: block;
+    }
+
+    .code-editor.active.animate {
+      opacity: 1;
+      animation: fadeInScale 0.3s ease forwards;
+    }
+
+    /* Syntax Highlighting Styles */
+    .code-editor pre {
+      margin: 0;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .code-editor .keyword {
+      color: #569CD6;
+    }
+
+    .code-editor .string {
+      color: #CE9178;
+    }
+
+    .code-editor .function {
+      color: #DCDCAA;
+    }
+
+    .code-editor .variable {
+      color: #9CDCFE;
+    }
+
+    .code-editor .comment {
+      color: #6A9955;
+      font-style: italic;
+    }
+
+    .code-editor .number {
+      color: #B5CEA8;
+    }
+
+    /* Typing Animation Styles */
+    .typing-animation {
+      border-right: 2px solid #fff;
+      animation: blink-caret 0.75s step-end infinite;
+    }
+
+    @keyframes blink-caret {
+      from, to {
+        border-color: transparent;
+      }
+      50% {
+        border-color: #fff;
+      }
+    }
+
+    @keyframes fadeInScale {
+      0% {
+        opacity: 0;
+        transform: scale(0.9) translate(-50%, -50%);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translate(-50%, -50%);
+      }
+    }
+
+    /* AI Response Styles */
+    .ai-response {
+      margin-top: 1rem;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      color: #fff;
+      overflow-y: auto;
+      max-height: 50vh;
+    }
+
+    .ai-response p {
+      margin-bottom: 1rem;
+    }
+
+    .ai-response .ai-response-text {
+      white-space: pre-wrap;
+    }
+
+    .ai-response .ai-response-text.typing::after {
+      content: '';
+      display: inline-block;
+      border-right: 2px solid #fff;
+      animation: blink-caret 0.75s step-end infinite;
+    }
+
+    .ai-response .close-button {
+      margin-top: 1rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 400;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+    }
+
+    .ai-response .close-button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
 <body>
+  <!-- Command Palette -->
   <nav class="command-menu" aria-hidden="false" aria-expanded="true" role="navigation">
     <div class="command-menu-header">
       <input class="command-menu-search" type="search" placeholder="Search, command, generate, train" value="">
@@ -176,95 +310,177 @@
     </div>
     <div class="command-menu-content">
       <ul class="groups list-reset" role="listbox" aria-label="Site navigation">
+        <!-- Suggestions Group -->
         <li class="group" role="option">
           <span id="group-1-label" class="group-label">Suggestions</span>
           <ul id="group-options-1" class="list-reset group-options group-options-1" aria-labelledby="group-1-label">
             <li class="group-option">
-              <a href="#" class="group-option-link">
+              <a href="#" class="group-option-link" data-command="ai autocomplete">
+                <i class="fas fa-magic"></i> AI Autocomplete
+              </a>
+            </li>
+            <li class="group-option">
+              <a href="#" class="group-option-link" data-command="ai debug">
                 <i class="fas fa-robot"></i> AI Debug
               </a>
             </li>
             <li class="group-option">
-              <a href="#" class="group-option-link">
+              <a href="#" class="group-option-link" data-command="refactor code">
                 <i class="fas fa-code"></i> Refactor Code
               </a>
             </li>
             <li class="group-option">
-              <a href="#" class="group-option-link">
+              <a href="#" class="group-option-link" data-command="run unit tests">
                 <i class="fas fa-vial"></i> Run Unit Tests
               </a>
             </li>
             <li class="group-option">
-              <a href="#" class="group-option-link">
+              <a href="#" class="group-option-link" data-command="open logitech options+">
                 <i class="fas fa-tools"></i> Open Logitech Options+
               </a>
             </li>
             <li class="group-option">
-              <a href="#" class="group-option-link">
+              <a href="#" class="group-option-link" data-command="open logi ai prompt builder">
                 <i class="fas fa-brain"></i> Open Logi AI Prompt Builder
               </a>
             </li>
           </ul>
         </li>
+        <!-- Favorites Group -->
         <li class="group" role="option">
           <span id="group-2-label" class="group-label">Favorites</span>
           <ul id="group-options-2" class="list-reset group-options group-options-2" aria-labelledby="group-2-label">
             <li class="group-option">
-              <a href="#" class="group-option-link">
-                <i class="fas fa-bug"></i> Debug Current File
-              </a>
-            </li>
-            <li class="group-option">
-              <a href="#" class="group-option-link">
-                <i class="fas fa-project-diagram"></i> Refactor Project
+              <a href="#" class="group-option-link" data-command="open vscode">
+                <i class="fas fa-code"></i> Open VSCode
               </a>
             </li>
           </ul>
         </li>
+        <!-- Recently Used Group -->
         <li class="group" role="option">
           <span id="group-3-label" class="group-label">Recently Used</span>
           <ul id="group-options-3" class="list-reset group-options group-options-3" aria-labelledby="group-3-label">
             <li class="group-option">
-              <a href="#" class="group-option-link">
+              <a href="#" class="group-option-link" data-command="auto-fix formatting">
                 <i class="fas fa-magic"></i> Auto-Fix Formatting
               </a>
             </li>
             <li class="group-option">
-              <a href="#" class="group-option-link">
+              <a href="#" class="group-option-link" data-command="generate documentation">
                 <i class="fas fa-book"></i> Generate Documentation
               </a>
             </li>
           </ul>
         </li>
       </ul>
+      <!-- AI Response Section -->
+      <div class="ai-response" style="display: none;">
+        <p class="ai-response-text"></p>
+        <button class="close-button">Close</button>
+      </div>
     </div>
   </nav>
 
+  <!-- Code Editor -->
+  <div class="code-editor" id="codeEditor">
+    <pre contenteditable="true" id="codeContent" spellcheck="false"><span class="comment">// Sample Class Implementation</span>
+<span class="keyword">class</span> <span class="function">DataProcessor</span> {
+  <span class="keyword">constructor</span>() {
+    <span class="keyword">this</span>.<span class="variable">data</span> <span class="keyword">=</span> [];
+  }
+
+  <span class="keyword">addData</span>(<span class="variable">item</span>) {
+    <span class="keyword">this</span>.<span class="variable">data</span>.<span class="function">push</span>(<span class="variable">item</span>);
+  }
+
+  <span class="keyword">processData</span>() {
+    <span class="comment">// Processing logic here</span>
+  }
+
+  <span class="function">/* Place cursor here for autocomplete */</span>
+}
+
+<span class="keyword">const</span> <span class="variable">processor</span> <span class="keyword">=</span> <span class="keyword">new</span> <span class="function">DataProcessor</span>();
+<span class="variable">processor</span>.<span class="function">addData</span>(<span class="string">'Sample Data'</span>);
+    </pre>
+  </div>
+
   <script>
+    // JavaScript Code
     const commandMenu = document.querySelector('.command-menu');
     const searchInput = document.querySelector('.command-menu-search');
     const links = document.querySelectorAll('.group-option-link');
+    const codeEditor = document.getElementById('codeEditor');
+    const codeContent = document.getElementById('codeContent');
+    const aiResponseDiv = document.querySelector('.ai-response');
+    const aiResponseText = document.querySelector('.ai-response-text');
+    const closeButton = document.querySelector('.close-button');
     let activeIndex = -1;
+    let cursorPosition = 0;
+    let selectionStartOffset = 0;
+    let selectionEndOffset = 0;
 
     // Show/hide command palette on Cmd+K or Ctrl+K
     document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        commandMenu.classList.toggle('active');
+        toggleCommandMenu();
+      } else if (e.key === 'Escape') {
+        // Close overlays when pressing Escape
         if (commandMenu.classList.contains('active')) {
-          searchInput.focus();
-        } else {
-          searchInput.blur();
-          resetSearch(); // Reset search when closing the palette
+          commandMenu.classList.remove('active');
+          resetSearch();
+        }
+        if (aiResponseDiv.style.display === 'block') {
+          aiResponseDiv.style.display = 'none';
+          document.querySelector('.groups').style.display = 'block';
+          resetSearch();
         }
       }
     });
 
-    // Search filter functionality
-    searchInput.addEventListener('input', (e) => {
-      const searchTerm = e.target.value.toLowerCase();
-      filterLinks(searchTerm);
-    });
+    function toggleCommandMenu() {
+      if (commandMenu.classList.contains('active')) {
+        commandMenu.classList.remove('active');
+      } else {
+        saveCodeSelection();
+        saveCursorPosition();
+        commandMenu.classList.add('active');
+        searchInput.focus();
+        resetSearch();
+      }
+    }
+
+    // Save cursor position
+    function saveCursorPosition() {
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0 && codeContent.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0);
+        const preRange = document.createRange();
+        preRange.selectNodeContents(codeContent);
+        preRange.setEnd(range.startContainer, range.startOffset);
+        cursorPosition = preRange.toString().length;
+      } else {
+        cursorPosition = null;
+      }
+    }
+
+    // Save selection offsets
+    function saveCodeSelection() {
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0 && codeContent.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0);
+        const preRange = document.createRange();
+        preRange.selectNodeContents(codeContent);
+        preRange.setEnd(range.startContainer, range.startOffset);
+        selectionStartOffset = preRange.toString().length;
+        preRange.setEnd(range.endContainer, range.endOffset);
+        selectionEndOffset = preRange.toString().length;
+      } else {
+        selectionStartOffset = selectionEndOffset = null;
+      }
+    }
 
     // Handle ArrowDown to move from input field to first item
     searchInput.addEventListener('keydown', (e) => {
@@ -272,6 +488,127 @@
         e.preventDefault(); // Prevent cursor from moving in input
         moveFocus(1); // Move to first visible item
       }
+    });
+
+    // Handle Arrow keys, Tab, and Enter for navigation and command execution
+    document.addEventListener('keydown', async (e) => {
+      if (commandMenu.classList.contains('active')) {
+        if (document.activeElement !== searchInput) {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            moveFocus(1); // Move down
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            moveFocus(-1); // Move up
+          } else if (e.key === 'Enter' && activeIndex >= 0) {
+            e.preventDefault();
+            const visibleLinks = Array.from(links).filter(link => link.style.display !== 'none');
+            if (visibleLinks[activeIndex]) {
+              visibleLinks[activeIndex].click(); // Simulate click on focused item
+            }
+          } else if (e.key === 'Tab') {
+            e.preventDefault();
+            moveFocus(1); // Tab should also cycle through options
+          }
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          const command = searchInput.value.toLowerCase().trim();
+          const isCommand = executeCommand(command);
+          if (!isCommand) {
+            // Simulate AI response
+            await showAIResponse(command);
+          }
+        }
+      }
+    });
+
+    // Function to execute known commands
+    function executeCommand(command) {
+      if (command === 'open vscode') {
+        openVSCode();
+        return true;
+      } else if (command === 'ai autocomplete') {
+        aiAutocomplete();
+        return true;
+      } else if (command === 'refactor code') {
+        refactorSelectedCode();
+        return true;
+      } else if (command === 'ai debug') {
+        alert('AI Debug is not implemented in this demo.');
+        commandMenu.classList.remove('active');
+        return true;
+      } else if (command === 'run unit tests') {
+        alert('Run Unit Tests is not implemented in this demo.');
+        commandMenu.classList.remove('active');
+        return true;
+      } else if (command === 'open logitech options+') {
+        alert('Open Logitech Options+ is not implemented in this demo.');
+        commandMenu.classList.remove('active');
+        return true;
+      } else if (command === 'open logi ai prompt builder') {
+        alert('Open Logi AI Prompt Builder is not implemented in this demo.');
+        commandMenu.classList.remove('active');
+        return true;
+      } else if (command === 'auto-fix formatting') {
+        alert('Auto-Fix Formatting is not implemented in this demo.');
+        commandMenu.classList.remove('active');
+        return true;
+      } else if (command === 'generate documentation') {
+        alert('Generate Documentation is not implemented in this demo.');
+        commandMenu.classList.remove('active');
+        return true;
+      }
+      return false; // Not a recognized command
+    }
+
+    // Show AI response in the overlay
+    async function showAIResponse(query) {
+      // Clear previous response
+      aiResponseText.textContent = '';
+      aiResponseText.classList.add('typing');
+      // Hide command list and show AI response section
+      document.querySelector('.groups').style.display = 'none';
+      aiResponseDiv.style.display = 'block';
+      // Simulate AI typing response
+      const response = await simulateAIResponse(query);
+      await typeAIResponse(response);
+    }
+
+    // Simulate AI response (dummy text)
+    async function simulateAIResponse(query) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          // Dummy response based on the Logi Marketplace page
+          const dummyResponse = `Logi Marketplace is an online platform by Logitech that offers a collection of third-party apps and plugins to enhance your Logitech devices. The Logi Actions SDK allows developers to create custom integrations and functionalities for Logitech devices, enabling personalized workflows and extended capabilities. With these tools, users can optimize their productivity and customize their experience to suit their specific needs.`;
+          resolve(dummyResponse);
+        }, 500); // Simulate a 0.5-second delay
+      });
+    }
+
+    // Type AI response with typing animation
+    async function typeAIResponse(response) {
+      const textArray = response.split('');
+      for (let i = 0; i < textArray.length; i++) {
+        aiResponseText.textContent += textArray[i];
+        await new Promise(resolve => setTimeout(resolve, 30)); // Typing speed
+      }
+      // Remove blinking cursor after typing
+      aiResponseText.classList.remove('typing');
+    }
+
+    // Close AI response and return to command palette
+    closeButton.addEventListener('click', () => {
+      aiResponseDiv.style.display = 'none';
+      document.querySelector('.groups').style.display = 'block';
+      commandMenu.classList.remove('active');
+      resetSearch();
+    });
+
+    // Search filter functionality
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      filterLinks(searchTerm);
+      activeIndex = -1; // Reset active index when filtering
     });
 
     // Filter the command options based on search input
@@ -285,22 +622,6 @@
         }
       });
     }
-
-    // Keyboard navigation with arrow keys and Enter
-    document.addEventListener('keydown', (e) => {
-      if (commandMenu.classList.contains('active') && document.activeElement !== searchInput) {
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          moveFocus(1); // Move down
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          moveFocus(-1); // Move up
-        } else if (e.key === 'Enter' && activeIndex >= 0) {
-          e.preventDefault();
-          links[activeIndex].click(); // Simulate click on focused item
-        }
-      }
-    });
 
     // Move focus to next or previous link
     function moveFocus(direction) {
@@ -321,7 +642,232 @@
       links.forEach(link => {
         link.style.display = 'flex'; // Ensure flex layout
       });
+      aiResponseDiv.style.display = 'none';
+      document.querySelector('.groups').style.display = 'block';
     }
+
+    // Function to open VSCode editor
+    function openVSCode() {
+      commandMenu.classList.remove('active');
+      codeEditor.classList.add('active');
+      codeContent.focus();
+      // Start the animation
+      codeEditor.classList.add('animate');
+    }
+
+    // Function to simulate AI Autocomplete
+    async function aiAutocomplete() {
+      if (cursorPosition != null) {
+        // Close command palette before inserting code
+        commandMenu.classList.remove('active');
+        // Simulate a delay for the autocomplete process
+        const autocompletedCode = await simulateAutocomplete();
+        await insertCodeWithTypingEffect(autocompletedCode, cursorPosition);
+      } else {
+        alert('Please place the cursor where you want to autocomplete code.');
+        commandMenu.classList.remove('active');
+      }
+    }
+
+    // Simulated autocomplete function
+    async function simulateAutocomplete() {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          // Simulate autocompleted code
+          const codeSnippet = `
+  <span class="function">validateData</span>() {
+    <span class="keyword">return</span> <span class="variable">this</span>.<span class="variable">data</span>.<span class="function">every</span>(<span class="variable">item</span> <span class="keyword">=&gt;</span> <span class="variable">item</span> !== <span class="keyword">null</span>);
+  }`;
+          resolve(codeSnippet);
+        }, 500); // Simulate a 0.5-second delay
+      });
+    }
+
+    // Function to insert code with typing effect
+    async function insertCodeWithTypingEffect(codeToInsert, position) {
+      // Remove any existing typing animations
+      const existingTypingSpans = codeContent.querySelectorAll('.typing-animation');
+      existingTypingSpans.forEach(span => {
+        span.classList.remove('typing-animation');
+      });
+
+      const preHTML = codeContent.innerHTML;
+
+      // Create a temporary element to help with insertion
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = preHTML;
+
+      // Remove existing formatting to work with plain text offsets
+      function stripFormatting(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return node.textContent;
+        } else {
+          return Array.from(node.childNodes).map(stripFormatting).join('');
+        }
+      }
+
+      const plainText = stripFormatting(tempDiv);
+
+      // Split the text content at the cursor position
+      const beforeText = plainText.substring(0, position);
+      const afterText = plainText.substring(position);
+
+      // Create a container to build the new content
+      const beforeContent = document.createElement('div');
+      beforeContent.innerHTML = codeContent.innerHTML.substring(0, codeContent.innerHTML.indexOf(beforeText) + beforeText.length);
+      const afterContent = document.createElement('div');
+      afterContent.innerHTML = codeContent.innerHTML.substring(codeContent.innerHTML.indexOf(afterText));
+
+      // Build the new content with typing effect
+      codeContent.innerHTML = '';
+      codeContent.appendChild(beforeContent);
+
+      // Prepare the code to insert
+      const codeLines = codeToInsert.trim().split('\n');
+      for (let line of codeLines) {
+        const lineElement = document.createElement('div');
+        lineElement.innerHTML = line;
+        lineElement.classList.add('typing-animation');
+        codeContent.appendChild(lineElement);
+        await new Promise(resolve => setTimeout(resolve, 150)); // Adjust typing speed here
+      }
+
+      codeContent.appendChild(afterContent);
+
+      // Remove typing animation class after completion
+      const typingElements = codeContent.querySelectorAll('.typing-animation');
+      typingElements.forEach(element => {
+        element.classList.remove('typing-animation');
+      });
+
+      // Reset cursor position
+      cursorPosition = null;
+    }
+
+    // Function to refactor selected code (simulated)
+    async function refactorSelectedCode() {
+      const selectedText = getSelectedCode();
+      if (selectedText) {
+        // Close command palette before refactoring
+        commandMenu.classList.remove('active');
+        // Simulate a delay for the refactoring process
+        const refactored = await simulateRefactorCode(selectedText);
+        await replaceCodeWithTypingEffect(refactored);
+      } else {
+        alert('Please select some code to refactor.');
+        commandMenu.classList.remove('active');
+      }
+    }
+
+    // Simulated refactoring function
+    async function simulateRefactorCode(selectedText) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          // Simulate refactored code with a more efficient version
+          let refactoredCode = '';
+          if (selectedText.includes('processData')) {
+            refactoredCode = `<span class="function">processData</span>() {
+    <span class="keyword">return</span> <span class="variable">this</span>.<span class="variable">data</span>.<span class="function">filter</span>(<span class="variable">item</span> <span class="keyword">=&gt;</span> <span class="variable">item</span>.<span class="function">isValid</span>());
+  }`;
+          } else {
+            refactoredCode = `<span class="comment">// Refactored code not available for this selection.</span>`;
+          }
+          resolve(refactoredCode);
+        }, 500); // Simulate a 0.5-second delay
+      });
+    }
+
+    // Function to replace code with typing effect
+    async function replaceCodeWithTypingEffect(refactoredCode) {
+      // Remove any existing typing animations
+      const existingTypingSpans = codeContent.querySelectorAll('.typing-animation');
+      existingTypingSpans.forEach(span => {
+        span.classList.remove('typing-animation');
+      });
+
+      if (selectionStartOffset != null && selectionEndOffset != null) {
+        const preHTML = codeContent.innerHTML;
+
+        // Create a temporary element to help with replacement
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = preHTML;
+
+        // Remove existing formatting to work with plain text offsets
+        function stripFormatting(node) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            return node.textContent;
+          } else {
+            return Array.from(node.childNodes).map(stripFormatting).join('');
+          }
+        }
+
+        const plainText = stripFormatting(tempDiv);
+
+        // Find positions in the HTML content
+        const beforeText = plainText.substring(0, selectionStartOffset);
+        const afterText = plainText.substring(selectionEndOffset);
+
+        // Build the new content
+        const beforeContent = document.createElement('div');
+        beforeContent.innerHTML = codeContent.innerHTML.substring(0, codeContent.innerHTML.indexOf(beforeText) + beforeText.length);
+        const afterContent = document.createElement('div');
+        afterContent.innerHTML = codeContent.innerHTML.substring(codeContent.innerHTML.indexOf(afterText));
+
+        // Prepare the code to insert
+        const codeLines = refactoredCode.trim().split('\n');
+        codeContent.innerHTML = '';
+        codeContent.appendChild(beforeContent);
+
+        for (let line of codeLines) {
+          const lineElement = document.createElement('div');
+          lineElement.innerHTML = line;
+          lineElement.classList.add('typing-animation');
+          codeContent.appendChild(lineElement);
+          await new Promise(resolve => setTimeout(resolve, 150)); // Adjust typing speed here
+        }
+
+        codeContent.appendChild(afterContent);
+
+        // Remove typing animation class after completion
+        const typingElements = codeContent.querySelectorAll('.typing-animation');
+        typingElements.forEach(element => {
+          element.classList.remove('typing-animation');
+        });
+
+        // Clear selection offsets
+        selectionStartOffset = selectionEndOffset = null;
+      }
+    }
+
+    // Get selected code using saved offsets
+    function getSelectedCode() {
+      if (selectionStartOffset != null && selectionEndOffset != null) {
+        const textContent = codeContent.innerText;
+        return textContent.substring(selectionStartOffset, selectionEndOffset);
+      }
+      return null;
+    }
+
+    // Handle link clicks (e.g., when clicking "Open VSCode" or other commands)
+    links.forEach(link => {
+      link.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const command = link.getAttribute('data-command');
+        const isCommand = executeCommand(command);
+        if (!isCommand) {
+          alert(`Command "${command}" is not implemented in this demo.`);
+          commandMenu.classList.remove('active');
+        }
+      });
+    });
+
+    // Close command palette when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!commandMenu.contains(e.target) && !searchInput.contains(e.target) && commandMenu.classList.contains('active')) {
+        commandMenu.classList.remove('active');
+        resetSearch();
+      }
+    });
   </script>
 </body>
 </html>
