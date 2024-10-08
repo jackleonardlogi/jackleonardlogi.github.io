@@ -1,139 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <title>Single LED Behaviour Simulator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <title>CMD+K attempt</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome -->
   <style>
+    /* General Styles */
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Brown Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-weight: 300;
       margin: 0;
       padding: 0;
-      background-color: #1a1f24;
-    }
-
-    header {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      background-color: #814EFA;
-      color: white;
-      padding: 10px 20px;
-    }
-
-    .led {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      margin: 20px auto;
-      background-color: black;
-    }
-
-    .button-container {
+      height: 100vh;
+      background-image: radial-gradient(at 40% 20%, hsla(28, 100%, 74%, 1) 0, transparent 50%),
+                        radial-gradient(at 80% 0%, hsla(189, 100%, 56%, 1) 0, transparent 50%);
+      background-repeat: no-repeat;
+      background-size: cover;
+      color: #fff;
       text-align: center;
-      margin-top: 10px;
+      line-height: 1.6;
     }
 
-    button {
-      padding: 10px 20px;
-      margin: 0 10px;
+    .command-menu {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 600px; /* Ensure max width on larger screens */
+      max-height: 70vh;
+      background-color: rgba(34, 34, 34, 0.85);
+      border-radius: 1rem;
+      overflow-y: auto;
+      backdrop-filter: saturate(140%) blur(20px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      padding: 1rem;
+      transition: opacity 0.3s, transform 0.3s ease-in-out;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.9);
+    }
+
+    .command-menu.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .command-menu-header {
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+    }
+
+    .command-menu-search {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1.25rem;
       border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: 500;
-      background-color: #2a3038;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-family: 'Brown Pro', sans-serif;
+      font-weight: 300;
+      padding-right: 130px; /* Room for "Ask AI" and "Tab" buttons */
+      line-height: 1.25rem;
+    }
+
+    .command-menu-search::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .command-menu-search:focus {
+      outline: none;
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* "Tab" and "Ask AI" buttons */
+    .search-label {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .search-label button {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-family: 'Brown Pro', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 400;
+      backdrop-filter: blur(10px);
+      transition: background-color 0.3s;
+    }
+
+    .search-label button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Command menu content and groups */
+    .command-menu-content {
+      margin-top: 1rem;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      color: #cccccc;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05rem;
+      font-weight: bold;
+      font-family: 'Brown Pro', sans-serif;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      margin-bottom: 1rem;
+    }
+
+    .group-option-link {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      letter-spacing: 0.02rem;
+      transition: background-color 0.3s ease;
+      font-family: 'Brown Pro', sans-serif;
+      font-weight: 300;
+    }
+
+    .group-option-link:hover, .group-option-link:focus {
+      background-color: rgba(255, 255, 255, 0.1);
+      outline: none;
+    }
+
+    .group-option-link i {
+      margin-right: 10px;
       color: white;
     }
 
-    button:hover {
-      background-color: #3b4450;
-    }
-
-    #statusTitle {
-      color: white;
-      text-align: center;
+    .group-label {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.03rem;
+      font-family: 'Brown Pro', sans-serif;
     }
   </style>
 </head>
-
 <body>
-  <header>
-    <div>PWS UX & PX UX</div>
-    <div>Single LED Behaviour Simulator</div>
-  </header>
-  <h2 id="statusTitle">LED State: Off</h2>
-  <div class="led" id="led"></div>
-  <div class="button-container">
-    <button onclick="pairing()">Pairing</button>
-    <button onclick="reconnection()">Reconnection</button>
-    <button onclick="powerOn()">Power On</button>
-    <button onclick="oob()">Out of Box (OOB)</button>
-    <button onclick="resetLED()">Reset</button>
-  </div>
+  <nav class="command-menu" aria-hidden="false" aria-expanded="true" role="navigation">
+    <div class="command-menu-header">
+      <input class="command-menu-search" type="search" placeholder="Search, command, generate, train" value="">
+      <div class="search-label">
+        <button><i class="fas fa-magic"></i> Ask AI</button>
+        <button>Tab</button>
+      </div>
+    </div>
+    <div class="command-menu-content">
+      <ul class="groups list-reset" role="listbox" aria-label="Site navigation">
+        <li class="group" role="option">
+          <span id="group-1-label" class="group-label">Suggestions</span>
+          <ul id="group-options-1" class="list-reset group-options group-options-1" aria-labelledby="group-1-label">
+            <li class="group-option">
+              <a href="#" class="group-option-link">
+                <i class="fas fa-robot"></i> AI Debug
+              </a>
+            </li>
+            <li class="group-option">
+              <a href="#" class="group-option-link">
+                <i class="fas fa-code"></i> Refactor Code
+              </a>
+            </li>
+            <li class="group-option">
+              <a href="#" class="group-option-link">
+                <i class="fas fa-vial"></i> Run Unit Tests
+              </a>
+            </li>
+            <li class="group-option">
+              <a href="#" class="group-option-link">
+                <i class="fas fa-tools"></i> Open Logitech Options+
+              </a>
+            </li>
+            <li class="group-option">
+              <a href="#" class="group-option-link">
+                <i class="fas fa-brain"></i> Open Logi AI Prompt Builder
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="group" role="option">
+          <span id="group-2-label" class="group-label">Favorites</span>
+          <ul id="group-options-2" class="list-reset group-options group-options-2" aria-labelledby="group-2-label">
+            <li class="group-option">
+              <a href="#" class="group-option-link">
+                <i class="fas fa-bug"></i> Debug Current File
+              </a>
+            </li>
+            <li class="group-option">
+              <a href="#" class="group-option-link">
+                <i class="fas fa-project-diagram"></i> Refactor Project
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="group" role="option">
+          <span id="group-3-label" class="group-label">Recently Used</span>
+          <ul id="group-options-3" class="list-reset group-options group-options-3" aria-labelledby="group-3-label">
+            <li class="group-option">
+              <a href="#" class="group-option-link">
+                <i class="fas fa-magic"></i> Auto-Fix Formatting
+              </a>
+            </li>
+            <li class="group-option">
+              <a href="#" class="group-option-link">
+                <i class="fas fa-book"></i> Generate Documentation
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </nav>
 
-  <script>
-    let activeBlink;
-
-    function blink(ledId, onColor, offColor, blinkTime, displayTime, steadyTime, steadyColor) {
-      clearInterval(activeBlink);
-      let led = document.getElementById(ledId);
-      let isOn = true;
-      let blinkCount = displayTime / (2 * blinkTime);
-
-      activeBlink = setInterval(() => {
-        if (blinkCount > 0) {
-          led.style.backgroundColor = isOn ? onColor : offColor;
-          isOn = !isOn;
-          blinkCount--;
-        } else {
-          clearInterval(activeBlink);
-          if (steadyTime > 0) {
-            led.style.backgroundColor = steadyColor;
-            setTimeout(() => {
-              resetLED();
-            }, steadyTime);
-          } else {
-            resetLED();
-          }
-        }
-      }, blinkTime);
-    }
-
-    function resetLED() {
-      clearInterval(activeBlink);
-      let led = document.getElementById('led');
-      led.style.backgroundColor = 'black';
-      document.getElementById('statusTitle').textContent = 'LED State: Off';
-    }
-
-    function pairing() {
-      document.getElementById('statusTitle').textContent = 'LED State: Pairing';
-      blink('led', 'white', 'black', 150, 180000, 5000, 'white');
-    }
-
-    function reconnection() {
-      document.getElementById('statusTitle').textContent = 'LED State: Reconnecting';
-      blink('led', 'white', 'black', 300, 5000, 0, '');
-    }
-
-    function powerOn() {
-      document.getElementById('statusTitle').textContent = 'LED State: Powering On';
-      steady('led', 'white', 5000);
-    }
-
-    function oob() {
-      document.getElementById('statusTitle').textContent = 'LED State: Out of Box (OOB)';
-      blink('led', 'white', 'black', 150, 180000, 0, '');
-    }
-
-    function steady(ledId, color, duration) {
-      clearInterval(activeBlink);
-      let led = document.getElementById(ledId);
-      led.style.backgroundColor = color;
-      setTimeout(() => resetLED(), duration);
-    }
-  </script>
+  <script src="./script.js"></script> <!-- Link your script.js file -->
 </body>
-
 </html>
+
+
