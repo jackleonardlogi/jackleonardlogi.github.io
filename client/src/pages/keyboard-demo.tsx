@@ -1,0 +1,452 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  VideoIcon,
+  MicIcon,
+  MonitorIcon,
+  ImageIcon,
+  MessageSquareIcon,
+  BellIcon,
+  KeyboardIcon,
+  MousePointerIcon,
+  SettingsIcon,
+  SpeakerIcon,
+  SunIcon,
+  MoonIcon,
+  LockIcon
+} from 'lucide-react';
+
+interface FunctionKey {
+  key: string;
+  icon: React.ReactNode;
+  baseFunction: string;
+  macroFunction: string;
+  shortcut: string;
+  description: string;
+}
+
+const functionKeys: FunctionKey[] = [
+  {
+    key: 'esc',
+    icon: <LockIcon className="w-4 h-4" />,
+    baseFunction: 'Lock',
+    macroFunction: 'Lock Screen',
+    shortcut: 'Fn + Esc',
+    description: 'Instantly lock your computer'
+  },
+  {
+    key: 'F1',
+    icon: <VideoIcon className="w-4 h-4" />,
+    baseFunction: 'Help',
+    macroFunction: 'Start Meeting',
+    shortcut: 'Fn + F1',
+    description: 'Launch Zoom meeting'
+  },
+  {
+    key: 'F2',
+    icon: <MicIcon className="w-4 h-4" />,
+    baseFunction: 'Rename',
+    macroFunction: 'Toggle Mute',
+    shortcut: 'Fn + F2',
+    description: 'Mute/unmute microphone'
+  },
+  {
+    key: 'F3',
+    icon: <MonitorIcon className="w-4 h-4" />,
+    baseFunction: 'Search',
+    macroFunction: 'Screen Share',
+    shortcut: 'Fn + F3',
+    description: 'Start screen sharing'
+  },
+  {
+    key: 'F4',
+    icon: <ImageIcon className="w-4 h-4" />,
+    baseFunction: 'Address',
+    macroFunction: 'Git Commit',
+    shortcut: 'Fn + F4',
+    description: 'Quick commit changes'
+  },
+  {
+    key: 'F5',
+    icon: <MessageSquareIcon className="w-4 h-4" />,
+    baseFunction: 'Refresh',
+    macroFunction: 'Slack',
+    shortcut: 'Fn + F5',
+    description: 'Open Slack app'
+  },
+  {
+    key: 'F6',
+    icon: <BellIcon className="w-4 h-4" />,
+    baseFunction: 'Security',
+    macroFunction: 'DND',
+    shortcut: 'Fn + F6',
+    description: 'Toggle Do Not Disturb'
+  },
+  {
+    key: 'F7',
+    icon: <KeyboardIcon className="w-4 h-4" />,
+    baseFunction: 'Previous',
+    macroFunction: 'ChatGPT',
+    shortcut: 'Fn + F7',
+    description: 'AI-powered actions'
+  },
+  {
+    key: 'F8',
+    icon: <MousePointerIcon className="w-4 h-4" />,
+    baseFunction: 'Play',
+    macroFunction: 'Open Spotlight Search',
+    shortcut: 'Fn + F8',
+    description: 'Quick app launcher'
+  },
+  {
+    key: 'F9',
+    icon: <SettingsIcon className="w-4 h-4" />,
+    baseFunction: 'Next',
+    macroFunction: 'Settings',
+    shortcut: 'Fn + F9',
+    description: 'Open Options+'
+  },
+  {
+    key: 'F10',
+    icon: <SpeakerIcon className="w-4 h-4" />,
+    baseFunction: 'Mute',
+    macroFunction: 'Audio',
+    shortcut: 'Fn + F10',
+    description: 'Audio settings'
+  },
+  {
+    key: 'F11',
+    icon: <SunIcon className="w-4 h-4" />,
+    baseFunction: 'Volume -',
+    macroFunction: 'Open Terminal',
+    shortcut: 'Fn + F11',
+    description: 'Launch terminal'
+  },
+  {
+    key: 'F12',
+    icon: <MoonIcon className="w-4 h-4" />,
+    baseFunction: 'Volume +',
+    macroFunction: 'Color Picker',
+    shortcut: 'Fn + F12',
+    description: 'Pick screen colors'
+  }
+];
+
+const FunctionRowDemo = () => {
+  const [timelineStep, setTimelineStep] = useState(0);
+  const [isFnPressed, setIsFnPressed] = useState(false);
+  const [activeKey, setActiveKey] = useState<number | null>(null);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // Handle keyboard events
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent default behavior for all function keys
+      if ((e.key.startsWith('F') && !isNaN(parseInt(e.key.slice(1)))) || e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+
+        let keyIndex: number;
+        if (e.key === 'Escape') {
+          keyIndex = 0;
+        } else {
+          keyIndex = parseInt(e.key.slice(1)) - 1;
+        }
+
+        if (keyIndex >= 0 && keyIndex <= 11) {
+          setIsAutoPlaying(false); // Stop auto animation
+          setIsFnPressed(true);
+          setShowOverlay(true);
+          setActiveKey(keyIndex);
+          console.log('Key pressed:', e.key, 'Index:', keyIndex); // Debug log
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if ((e.key.startsWith('F') && !isNaN(parseInt(e.key.slice(1)))) || e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsFnPressed(false);
+        setShowOverlay(false);
+        setActiveKey(null);
+        console.log('Key released:', e.key); // Debug log
+      }
+    };
+
+    // Add capture phase to intercept events before they reach other handlers
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    window.addEventListener('keyup', handleKeyUp, { capture: true });
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, { capture: true });
+      window.removeEventListener('keyup', handleKeyUp, { capture: true });
+    };
+  }, []);
+
+  // Auto-play timeline
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+
+    const timeline = [
+      // Initial state
+      () => {
+        setIsFnPressed(false);
+        setShowOverlay(false);
+        setActiveKey(null);
+      },
+      // Show overlay
+      () => {
+        setIsFnPressed(true);
+        setShowOverlay(true);
+      },
+      // Highlight meeting key (F1)
+      () => setActiveKey(0),
+      // Highlight mute key (F2)
+      () => setActiveKey(1),
+      // Highlight screen share (F3)
+      () => setActiveKey(2),
+      // Reset state
+      () => {
+        setIsFnPressed(false);
+        setShowOverlay(false);
+        setActiveKey(null);
+      }
+    ];
+
+    const durations = [2000, 1500, 2000, 2000, 2000, 2000];
+
+    const timer = setInterval(() => {
+      setTimelineStep((prev) => {
+        const next = (prev + 1) % timeline.length;
+        timeline[next]();
+        return next;
+      });
+    }, durations[timelineStep]);
+
+    return () => clearInterval(timer);
+  }, [timelineStep, isAutoPlaying]);
+
+  return (
+    <div className="w-full min-h-screen bg-gray-200 flex flex-col items-center justify-start p-8 font-poppins">
+      {/* Screen Display */}
+      <div
+        className="w-full max-w-[900px] h-[400px] bg-gradient-to-br from-teal-500 to-blue-600 rounded-t-xl shadow-2xl flex flex-col overflow-hidden relative"
+        style={{
+          boxShadow: '0px 20px 40px -10px rgba(0, 0, 0, 0.5)',
+        }}
+      >
+        {/* Fake Window */}
+        <div className="relative z-10 w-3/4 h-3/4 bg-gray-100/90 backdrop-blur-sm rounded-lg shadow-lg m-8 border border-gray-300/50 overflow-hidden">
+          {/* Window Title Bar */}
+          <div className="w-full h-8 bg-gray-200/90 backdrop-blur-sm px-4 flex items-center justify-between">
+            <div className="flex space-x-2">
+              <div className="w-3 h-3 rounded-full bg-red-400" />
+              <div className="w-3 h-3 rounded-full bg-yellow-400" />
+              <div className="w-3 h-3 rounded-full bg-green-400" />
+            </div>
+            <div className="text-sm text-gray-700">
+              ~user/projects/my-app
+            </div>
+            <div />
+          </div>
+          {/* Window Content Area */}
+          <div className="w-full h-[calc(100%-2rem)] overflow-y-auto p-4 text-sm">
+            <p className="text-gray-800">
+              This is a fake window to simulate an application. The function row overlay will appear on top of this.
+            </p>
+          </div>
+        </div>
+
+        {/* Glass overlay */}
+        <AnimatePresence>
+          {showOverlay && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="absolute bottom-12 z-20 w-full px-8"
+            >
+              <div
+                className="bg-white/40 border border-white/20 rounded-2xl shadow-2xl p-6 overflow-hidden"
+                style={{
+                  backdropFilter: 'blur(24px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                  background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3))'
+                }}
+              >
+                <div className="flex gap-1.5">
+                  {functionKeys.map((key, idx) => (
+                    <motion.div
+                      key={`overlay-${key.key}`}
+                      className={`flex-1 rounded-lg p-3 transition-all ${
+                        activeKey === idx
+                          ? 'bg-purple-500/50 text-white ring-2 ring-purple-500'
+                          : 'bg-white/50 text-gray-800'
+                      } ${isFnPressed ? 'hover:bg-purple-500/30' : ''}`}
+                      initial={{ opacity: 0 }}
+                      animate={{
+                        opacity: activeKey === idx || activeKey === null ? 1 : 0.8,
+                      }}
+                    >
+                      <div className="flex flex-col items-center gap-2 max-h-full overflow-hidden">
+                        <div className="">{key.icon}</div>
+                        <span className="text-xs font-medium truncate w-full text-center">
+                          {isFnPressed ? key.macroFunction : key.baseFunction}
+                        </span>
+                        {isFnPressed && (
+                          <span className="text-[10px] text-gray-800/80 truncate w-full text-center">
+                            {key.shortcut}
+                          </span>
+                        )}
+                        {activeKey === idx && isFnPressed && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-[10px] text-center mt-1 truncate w-full"
+                          >
+                            {key.description}
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Keyboard */}
+      <div className="mt-8">
+        <div
+          className="bg-gray-300 rounded-2xl shadow-2xl px-8 pt-6 pb-4 w-full max-w-[900px] relative"
+          style={{
+            boxShadow: '0px 10px 30px -5px rgba(0, 0, 0, 0.7)',
+          }}
+        >
+          {/* Function Row */}
+          <div className="flex gap-1.5 mb-4">
+            {functionKeys.map((key, idx) => (
+              <motion.button
+                key={key.key}
+                className={`w-16 h-12 bg-gray-200 text-gray-800 text-sm font-medium rounded-lg shadow-lg flex items-center justify-center ${
+                  activeKey === idx ? 'ring-2 ring-purple-500' : ''
+                }`}
+                animate={{
+                  scale: activeKey === idx ? 0.95 : 1,
+                  backgroundColor: activeKey === idx ? '#9333ea' : '#e5e7eb',
+                  color: activeKey === idx ? '#ffffff' : '#1f2937'
+                }}
+              >
+                {key.key}
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Rest of Keyboard (simplified) */}
+          <div className="space-y-1.5">
+            <div className="flex gap-1.5 justify-center">
+              {['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'].map(key => (
+                <motion.button
+                  key={key}
+                  className="w-12 h-12 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center text-sm"
+                >
+                  {key}
+                </motion.button>
+              ))}
+            </div>
+            <div className="flex gap-1.5 justify-center pl-4">
+              {['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'].map(key => (
+                <motion.button
+                  key={key}
+                  className="w-12 h-12 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center text-sm"
+                >
+                  {key}
+                </motion.button>
+              ))}
+            </div>
+            <div className="flex gap-1.5 justify-center pl-8">
+              {['Z', 'X', 'C', 'V', 'B', 'N', 'M'].map(key => (
+                <motion.button
+                  key={key}
+                  className="w-12 h-12 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center text-sm"
+                >
+                  {key}
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Bottom row with modifiers and space */}
+            <div className="flex gap-1.5 justify-center mt-1.5">
+              <motion.button
+                className="w-20 h-12 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center text-sm"
+              >
+                shift
+              </motion.button>
+              <motion.button
+                className="w-16 h-12 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center text-sm"
+              >
+                ctrl
+              </motion.button>
+              <motion.button
+                className="w-16 h-12 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center text-sm"
+              >
+                alt
+              </motion.button>
+              <motion.button
+                className="w-64 h-12 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center text-sm"
+              >
+                space
+              </motion.button>
+              <motion.button
+                className="w-16 h-12 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center text-sm"
+              >
+                alt
+              </motion.button>
+              <motion.button
+                className="w-16 h-12 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center text-sm"
+              >
+                ctrl
+              </motion.button>
+              <motion.button
+                className="w-20 h-12 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center text-sm"
+              >
+                shift
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Fn Key */}
+          <motion.div
+            className="absolute bottom-4 left-4 px-6 py-3 bg-gray-800 text-white rounded-xl shadow-lg"
+            animate={{
+              scale: isFnPressed ? 0.95 : 1,
+              backgroundColor: isFnPressed ? '#9333ea' : '#1f2937'
+            }}
+          >
+            fn
+          </motion.div>
+
+          {/* Mode Indicator */}
+          <div className="absolute bottom-4 right-4 flex items-center gap-2">
+            <span className="text-sm font-medium">
+              {isFnPressed ? 'Fn Overlay Active' : 'Overlay Inactive'}
+            </span>
+            <motion.div
+              animate={{
+                backgroundColor: isFnPressed ? '#9333ea' : '#9ca3af'
+              }}
+              className="w-2 h-2 rounded-full"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FunctionRowDemo;

@@ -1,0 +1,370 @@
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Lock,
+  Sun,
+  Moon,
+  Globe,
+  MessageSquare,
+  Mic,
+  PlayCircle,
+  Volume2,
+  VolumeX,
+  Volume1,
+  Terminal,
+  GitBranch,
+  Code2,
+  Search,
+  Database,
+  Bug,
+  Play,
+  Keyboard as KeyboardIcon,
+  MonitorSmartphone,
+  Settings2,
+} from 'lucide-react';
+
+interface FKey {
+  key: string;
+  icon: React.ReactNode;
+  baseFunction: string;
+  devFunction: string;
+  shortcut: string;
+  description: string;
+}
+
+const fKeys: FKey[] = [
+  {
+    key: 'esc',
+    icon: <Lock className="w-4 h-4" />,
+    baseFunction: 'Lock',
+    devFunction: 'Git Stash',
+    shortcut: 'Ctrl + Esc',
+    description: 'Quick save work in progress',
+  },
+  {
+    key: 'F1',
+    icon: <Sun className="w-4 h-4" />,
+    baseFunction: 'Brightness Down',
+    devFunction: 'Terminal',
+    shortcut: 'Ctrl + F1',
+    description: 'Toggle integrated terminal',
+  },
+  {
+    key: 'F2',
+    icon: <Sun className="w-4 h-4" />,
+    baseFunction: 'Brightness Up',
+    devFunction: 'Git Branch',
+    shortcut: 'Ctrl + F2',
+    description: 'Create/switch branches',
+  },
+  {
+    key: 'F3',
+    icon: <Globe className="w-4 h-4" />,
+    baseFunction: 'Mission Control',
+    devFunction: 'Find References',
+    shortcut: 'Ctrl + F3',
+    description: 'Find all code references',
+  },
+  {
+    key: 'F4',
+    icon: <Search className="w-4 h-4" />,
+    baseFunction: 'Spotlight',
+    devFunction: 'Find in Project',
+    shortcut: 'Ctrl + F4',
+    description: 'Search across workspace',
+  },
+  {
+    key: 'F5',
+    icon: <MessageSquare className="w-4 h-4" />,
+    baseFunction: 'Dictation',
+    devFunction: 'ChatGPT',
+    shortcut: 'Ctrl + F5',
+    description: 'AI code assistance',
+  },
+  {
+    key: 'F6',
+    icon: <Code2 className="w-4 h-4" />,
+    baseFunction: 'Do Not Disturb',
+    devFunction: 'Format Document',
+    shortcut: 'Ctrl + F6',
+    description: 'Auto-format current file',
+  },
+  {
+    key: 'F7',
+    icon: <Play className="w-4 h-4" />,
+    baseFunction: 'Previous Track',
+    devFunction: 'Run Tests',
+    shortcut: 'Ctrl + F7',
+    description: 'Run test suite',
+  },
+  {
+    key: 'F8',
+    icon: <Bug className="w-4 h-4" />,
+    baseFunction: 'Play/Pause',
+    devFunction: 'Debug',
+    shortcut: 'Ctrl + F8',
+    description: 'Start/stop debugger',
+  },
+  {
+    key: 'F9',
+    icon: <Database className="w-4 h-4" />,
+    baseFunction: 'Next Track',
+    devFunction: 'Docker',
+    shortcut: 'Ctrl + F9',
+    description: 'Manage containers',
+  },
+  {
+    key: 'F10',
+    icon: <VolumeX className="w-4 h-4" />,
+    baseFunction: 'Mute',
+    devFunction: 'Build',
+    shortcut: 'Ctrl + F10',
+    description: 'Build project',
+  },
+  {
+    key: 'F11',
+    icon: <Volume1 className="w-4 h-4" />,
+    baseFunction: 'Volume Down',
+    devFunction: 'Deploy',
+    shortcut: 'Ctrl + F11',
+    description: 'Deploy to staging',
+  },
+  {
+    key: 'F12',
+    icon: <Volume2 className="w-4 h-4" />,
+    baseFunction: 'Volume Up',
+    devFunction: 'Dev Tools',
+    shortcut: 'Ctrl + F12',
+    description: 'Browser developer tools',
+  },
+];
+
+const KeyboardDemo: React.FC = () => {
+  const [timelineStep, setTimelineStep] = useState(0);
+  const [activeKey, setActiveKey] = useState<number | null>(null);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [isCtrlPressed, setIsCtrlPressed] = useState(false);
+
+  useEffect(() => {
+    const timeline = [
+      // Initial state
+      () => {
+        setIsCtrlPressed(false);
+        setShowOverlay(false);
+        setActiveKey(null);
+      },
+      // Show overlay
+      () => {
+        setIsCtrlPressed(true);
+        setShowOverlay(true);
+      },
+      // Highlight keys
+      ...fKeys
+        .filter(
+          (fKey) =>
+            fKey.devFunction === 'Find in Project' ||
+            fKey.devFunction === 'ChatGPT' ||
+            fKey.devFunction === 'Run Tests' ||
+            fKey.devFunction === 'Debug'
+        )
+        .map((fKey) => () => setActiveKey(fKeys.indexOf(fKey))),
+      // Hide overlay and reset
+      () => {
+        setIsCtrlPressed(false);
+        setShowOverlay(false);
+        setActiveKey(null);
+      },
+    ];
+
+    const animationDurations = [1500, 1500, 2000, 2000, 2000, 2000, 2500];
+
+    const timer = setInterval(() => {
+      setTimelineStep((prev) => {
+        const next = (prev + 1) % timeline.length;
+        timeline[next]();
+        return next;
+      });
+    }, animationDurations[timelineStep] || 2000);
+
+    return () => clearInterval(timer);
+  }, [timelineStep]);
+
+  return (
+    <div
+      className="w-full min-h-screen bg-white flex items-center justify-center p-8 font-poppins"
+      style={{ backgroundColor: 'white' }}
+    >
+      <div className="relative w-full max-w-[1200px]">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8 px-4">
+          <div className="flex items-center gap-3">
+            <KeyboardIcon className="w-6 h-6 text-slate-600" />
+            <h1 className="text-xl font-semibold text-slate-800">
+              MX Keys S for Developers
+            </h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <MonitorSmartphone className="w-5 h-5 text-slate-400" />
+            <Settings2 className="w-5 h-5 text-slate-400" />
+          </div>
+        </div>
+
+        {/* Main keyboard area */}
+        <div className="relative">
+          {/* Glass overlay */}
+          <AnimatePresence>
+            {showOverlay && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="absolute -top-48 left-0 right-0 z-10"
+                style={{
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                }}
+              >
+                <div
+                  className="bg-[#9D00FF]/80 border border-[#9D00FF]/40 rounded-2xl shadow-2xl p-6"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(to bottom, rgba(157, 0, 255, 0.8), rgba(157, 0, 255, 0.6))',
+                  }}
+                >
+                  <div className="flex gap-1.5">
+                    {fKeys.map((fKey, idx) => (
+                      <motion.div
+                        key={`overlay-${fKey.key}`}
+                        className={`flex-1 rounded-lg p-3 transition-all ${
+                          activeKey === idx
+                            ? 'bg-purple-50/50 ring-2 ring-purple-200'
+                            : 'bg-white/30'
+                        } ${isCtrlPressed ? 'hover:bg-purple-50/50' : ''}`}
+                        initial={{ opacity: 0 }}
+                        animate={{
+                          opacity: activeKey === idx || activeKey === null ? 1 : 0.8,
+                        }}
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="text-white">{fKey.icon}</div>
+                          <span className="text-xs font-medium text-white">
+                            {isCtrlPressed ? fKey.devFunction : fKey.baseFunction}
+                          </span>
+                          {isCtrlPressed && (
+                            <span className="text-[10px] text-white/80">
+                              {fKey.shortcut}
+                            </span>
+                          )}
+                          {activeKey === idx && isCtrlPressed && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className="text-[10px] text-white/80 text-center mt-1"
+                            >
+                              {fKey.description}
+                            </motion.div>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Physical keyboard visualization */}
+          <div
+            className="bg-gray-900 rounded-2xl shadow-2xl p-8"
+            style={{
+              boxShadow: '0px 10px 30px -5px rgba(0, 0, 0, 0.7)',
+            }}
+          >
+            <div
+              className="bg-gray-800 rounded-lg px-6 py-4 flex items-center justify-between"
+              style={{
+                boxShadow: 'inset 0px 4px 6px -4px rgba(0, 0, 0, 0.7)',
+              }}
+            >
+              {/* Function row */}
+              <div className="flex gap-1.5">
+                {fKeys.map((fKey, idx) => (
+                  <motion.div key={fKey.key} className="relative">
+                    <motion.button
+                      className={`w-14 h-10 bg-gray-700 text-gray-300 text-xs font-medium rounded px-2 flex items-center justify-center shadow-md hover:bg-gray-600 active:bg-gray-800 transition-all duration-200 ${
+                        activeKey === idx ? 'ring-2 ring-purple-500' : ''
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {fKey.key}
+                    </motion.button>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Other keyboard rows (Example) */}
+            <div className="mt-4">
+              <div className="flex gap-1.5 justify-center">
+                {/* Row 1 */}
+                {['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'].map(
+                  (key) => (
+                    <motion.button
+                      key={key}
+                      className="w-10 h-10 bg-gray-700 text-gray-300 text-sm font-medium rounded px-2 flex items-center justify-center shadow-md hover:bg-gray-600 active:bg-gray-800 transition-all duration-200"
+                    >
+                      {key}
+                    </motion.button>
+                  )
+                )}
+              </div>
+              <div className="flex gap-1.5 justify-center mt-1.5">
+                {/* Row 2 */}
+                {['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'].map((key) => (
+                  <motion.button
+                    key={key}
+                    className="w-10 h-10 bg-gray-700 text-gray-300 text-sm font-medium rounded px-2 flex items-center justify-center shadow-md hover:bg-gray-600 active:bg-gray-800 transition-all duration-200"
+                  >
+                    {key}
+                  </motion.button>
+                ))}
+              </div>
+              {/* Add more rows as needed */}
+            </div>
+
+            {/* Control key area */}
+            <motion.div
+              animate={{
+                scale: isCtrlPressed ? 1.05 : 1,
+                backgroundColor: isCtrlPressed ? '#9D00FF' : '#4A4A4A',
+                color: isCtrlPressed ? '#ffffff' : '#A0AEC0',
+              }}
+              transition={{ duration: 0.3 }}
+              className="absolute bottom-4 left-8 px-4 py-2 rounded-lg text-sm font-medium shadow-lg border border-gray-700"
+            >
+              ctrl
+            </motion.div>
+
+            {/* Mode indicator */}
+            <div className="absolute bottom-4 right-8 flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-400">
+                {isCtrlPressed ? 'Developer Mode' : 'Standard Mode'}
+              </span>
+              <motion.div
+                animate={{
+                  backgroundColor: isCtrlPressed ? '#9D00FF' : '#64748B',
+                }}
+                transition={{ duration: 0.3 }}
+                className="w-2 h-2 rounded-full"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default KeyboardDemo;
