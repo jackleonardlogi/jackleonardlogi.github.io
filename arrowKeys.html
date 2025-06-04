@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Arrow Keys - Web Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    colors: {
+                        logitech: {
+                            purple: {
+                                50: '#f5f3ff',
+                                100: '#ede9fe',
+                                200: '#ddd6fe', // For focus rings
+                                300: '#c4b5fd',
+                                400: '#a78bfa',
+                                500: '#8b5cf6',
+                                600: '#7c3aed', // Primary Purple
+                                700: '#6d28d9',
+                                800: '#5b21b6',
+                                900: '#4c1d95',
+                            },
+                            gray: {
+                                50: '#f9fafb', // Textarea bg
+                                100: '#f4f5f7',
+                                200: '#e5e7eb', // Slider track
+                                300: '#d2d6dc', // Toggle off track
+                                400: '#9fa6b2',
+                                500: '#6b7280',
+                                600: '#4b5563',
+                                700: '#374151', // Graph secondary line
+                                800: '#252f3f', // Tooltip bg
+                                900: '#161e2e',
+                            },
+                            text: {
+                                primary: '#1a1a1a',      
+                                secondary: '#4b5563',    
+                                disabled: '#9fa6b2',     
+                            },
+                            light: {
+                                bg: {
+                                    primary: '#ffffff',
+                                    secondary: '#f9fafb', 
+                                    tertiary: '#f4f5f7',  
+                                },
+                                border: {
+                                    light: '#e5e7eb',
+                                    medium: '#d2d6dc',
+                                },
+                            },
+                            dark: { 
+                                bg: { primary: '#1a1a1a', secondary: '#252f3f', tertiary: '#374151', },
+                                border: { light: '#4b5563', medium: '#6b7280', },
+                                text: { primary: '#f9fafb', secondary: '#d2d6dc', disabled: '#6b7280',}
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'], 
+                    },
+                    borderRadius: {
+                        'logitech': '8px',
+                        'logitech-lg': '12px',
+                    },
+                    boxShadow: {
+                        'logitech': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'logitech-md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'logitech-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            overscroll-behavior: none;
+            background-color: #f9fafb; /* logitech.light.bg.secondary */
+            color: #1a1a1a; /* logitech.text.primary */
+        }
+        .selection\:bg-logitech-purple-100::selection {
+            background-color: #ede9fe; /* logitech.purple.100 */
+        }
+        .selection\:text-logitech-purple-700::selection {
+            color: #6d28d9; /* logitech.purple.700 */
+        }
+
+        .tab-button.active {
+            background-color: #7c3aed; /* logitech.purple.600 */
+            color: #1a1a1a; /* logitech.text.primary */
+            border-bottom-color: #7c3aed; /* logitech.purple.600 */
+        }
+        .tab-button {
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            border-bottom: 2px solid transparent;
+            color: #4b5563; /* logitech.text.secondary */
+        }
+        .tab-button:hover:not(.active) {
+            background-color: #f4f5f7; /* logitech.light.bg.tertiary */
+        }
+
+        textarea {
+            background-color: #f9fafb; /* logitech.gray.50 */
+            border-color: #d2d6dc; /* logitech.light.border.medium */
+            color: #1a1a1a; /* logitech.text.primary */
+        }
+        textarea:focus {
+            caret-color: #7c3aed; /* logitech.purple.600 - Purple caret */
+            border-color: #7c3aed; /* logitech.purple.600 */
+            box-shadow: 0 0 0 2px #ddd6fe; /* logitech.purple.200 */
+        }
+        textarea::-webkit-scrollbar { width: 8px; }
+        textarea::-webkit-scrollbar-track { background: #f4f5f7; border-radius: 8px; } /* logitech.light.bg.tertiary */
+        textarea::-webkit-scrollbar-thumb { background: #d2d6dc; border-radius: 8px; } /* logitech.gray.300 */
+        textarea::-webkit-scrollbar-thumb:hover { background: #9fa6b2; } /* logitech.gray.400 */
+
+        /* Range Slider styles using direct hex codes */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px; 
+            border-radius: 8px; /* logitech */
+            background: #e5e7eb; /* logitech.light.border.light */
+            outline: none;
+            opacity: 0.9;
+            transition: opacity .15s ease-in-out;
+        }
+        input[type=range]:hover { opacity: 1; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: #7c3aed; /* logitech.purple.600 */
+            cursor: pointer;
+            border: 2px solid #ffffff; /* logitech.light.bg.primary */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* logitech */
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: #7c3aed; /* logitech.purple.600 */
+            cursor: pointer;
+            border: 2px solid #ffffff; /* logitech.light.bg.primary */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* logitech */
+        }
+        
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext {
+            visibility: hidden; width: 220px; background-color: #252f3f; /* logitech.gray.800 */
+            color: #f9fafb; /* logitech.dark.text.primary */ text-align: center; 
+            border-radius: 8px; padding: 6px 10px; position: absolute;
+            z-index: 10; bottom: 130%; left: 50%; margin-left: -110px; opacity: 0;
+            transition: opacity 0.3s; font-size: 0.75rem; line-height: 1.4;
+        }
+        .tooltip .tooltiptext::after {
+            content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px;
+            border-width: 5px; border-style: solid; border-color: #252f3f transparent transparent transparent; /* logitech.gray.800 */
+        }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+
+        /* Toggle Switch Style using direct hex codes */
+        .logi-switch { position: relative; display: inline-block; width: 40px; height: 24px; }
+        .logi-switch input { 
+            opacity: 0; width: 0; height: 0; position: absolute; 
+        }
+        .logi-switch .slider-track { 
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #d2d6dc; /* logitech.gray.300 (off state) */
+            transition: .4s; border-radius: 34px;
+        }
+        .logi-switch .slider-track:before { /* This is the dot */
+            position: absolute; content: ""; height: 18px; width: 18px;
+            left: 3px; bottom: 3px; background-color: white;
+            transition: .4s; border-radius: 50%;
+        }
+        .logi-switch input:checked + .slider-track { background-color: #7c3aed; } /* logitech.purple.600 (on state) */
+        .logi-switch input:focus + .slider-track { box-shadow: 0 0 0 2px #ddd6fe; } /* logitech.purple.200 (focus ring) */
+        .logi-switch input:checked + .slider-track:before { transform: translateX(16px); }
+
+    </style>
+</head>
+<body class="bg-logitech-light-bg-secondary text-logitech-text-primary min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 selection:bg-logitech-purple-100 selection:text-logitech-purple-700">
+
+    <div class="w-full max-w-4xl bg-logitech-light-bg-primary shadow-logitech-lg rounded-logitech-lg overflow-hidden flex flex-col" style="min-height: 85vh; max-height: 90vh;">
+        <!-- Header -->
+        <header class="p-4 sm:p-6 border-b border-logitech-light-border-light">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-10 h-10 text-logitech-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-logitech-text-primary">Enhanced Arrow Keys</h1>
+                        <p class="text-xs sm:text-sm text-logitech-text-secondary">Accelerated Arrow Key Navigation</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="text-sm hidden sm:inline text-logitech-text-secondary">Enable Acceleration:</span>
+                     <label for="enableToggle" class="logi-switch">
+                        <input type="checkbox" id="enableToggle"> 
+                        <span class="slider-track"></span>
+                    </label>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="flex border-b border-logitech-light-border-light">
+            <button data-tab="demo" class="tab-button flex-1 py-3 px-4 text-sm sm:text-base font-medium focus:outline-none active">
+                <span class="sm:hidden">Demo</span>
+                <span class="hidden sm:inline">📝 Demo Editor</span>
+            </button>
+            <button data-tab="settings" class="tab-button flex-1 py-3 px-4 text-sm sm:text-base font-medium focus:outline-none">
+                <span class="sm:hidden">Settings</span>
+                <span class="hidden sm:inline">⚙️ Settings</span>
+            </button>
+        </nav>
+
+        <!-- Tab Content -->
+        <main class="flex-grow overflow-y-auto p-4 sm:p-6">
+            <!-- Demo Tab -->
+            <div id="demoTab" class="tab-content space-y-4 flex flex-col h-full">
+                <div id="tryItOutBanner" class="border px-4 py-3 rounded-logitech text-sm shrink-0 bg-logitech-purple-50 border-logitech-purple-300 text-logitech-purple-700" role="alert">
+                    <p><strong class="font-semibold">Try it out!</strong> Click in the text area. Tap an arrow key for a single move. Hold it for about <span id="activationTimeDisplay" class="font-bold">0.3</span> seconds to feel the acceleration. Adjust settings in the 'Settings' tab.</p>
+                </div>
+                <textarea id="demoTextarea" class="w-full p-3 border rounded-logitech resize-none text-sm leading-relaxed flex-grow min-h-[200px] h-[400px] sm:h-[500px] md:h-[calc(100vh-320px)]" spellcheck="false"></textarea>
+                 <div class="mt-2 text-xs shrink-0 text-logitech-text-secondary">
+                    Current Speed (repeats/sec): <span id="currentSpeedDisplay" class="font-semibold">0.00</span> |
+                    Current Delay (ms): <span id="currentDelayDisplay" class="font-semibold">N/A</span>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settingsTab" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-6">
+                        <h3 class="text-lg font-semibold border-b pb-2 text-logitech-text-primary border-logitech-light-border-light">Acceleration Parameters</h3>
+                        <div>
+                            <label for="accelerationCurve" class="block text-sm font-medium mb-1 text-logitech-text-primary">
+                                Acceleration Curve
+                                <span class="tooltip">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline text-logitech-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span class="tooltiptext">Controls how quickly speed increases. Lower values mean faster acceleration. (Range: 1.0 - 5.0)</span>
+                                </span>
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                <input type="range" id="accelerationCurve" min="1" max="5" step="0.1" class="flex-grow">
+                                <span id="accelerationCurveValue" class="text-sm w-10 text-right text-logitech-text-secondary">2.0</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="activationThreshold" class="block text-sm font-medium mb-1 text-logitech-text-primary">
+                                Activation Threshold (ms)
+                                <span class="tooltip">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline text-logitech-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span class="tooltiptext">Time (milliseconds) to hold key before acceleration starts. (Range: 50 - 1000 ms)</span>
+                                </span>
+                            </label>
+                             <div class="flex items-center space-x-2">
+                                <input type="range" id="activationThreshold" min="50" max="1000" step="10" class="flex-grow">
+                                <span id="activationThresholdValue" class="text-sm w-12 text-right text-logitech-text-secondary">300ms</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="baseDelay" class="block text-sm font-medium mb-1 text-logitech-text-primary">
+                                Base Delay (ms)
+                                <span class="tooltip">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline text-logitech-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span class="tooltiptext">Initial delay between key repeats once acceleration starts. (Range: 10 - 100 ms)</span>
+                                </span>
+                            </label>
+                             <div class="flex items-center space-x-2">
+                                <input type="range" id="baseDelay" min="10" max="100" step="1" class="flex-grow">
+                                <span id="baseDelayValue" class="text-sm w-12 text-right text-logitech-text-secondary">30ms</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="minDelay" class="block text-sm font-medium mb-1 text-logitech-text-primary">
+                                Minimum Delay (ms)
+                                <span class="tooltip">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline text-logitech-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span class="tooltiptext">Fastest possible repeat rate (shortest delay). (Range: 1 - 20 ms)</span>
+                                </span>
+                            </label>
+                             <div class="flex items-center space-x-2">
+                                <input type="range" id="minDelay" min="1" max="20" step="1" class="flex-grow">
+                                <span id="minDelayValue" class="text-sm w-12 text-right text-logitech-text-secondary">5ms</span>
+                            </div>
+                        </div>
+                         <div class="mt-4">
+                            <label for="fontSizeSlider" class="block text-sm font-medium mb-1 text-logitech-text-primary">Editor Font Size</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="range" id="fontSizeSlider" min="10" max="24" value="14" class="flex-grow">
+                                <span id="fontSizeValue" class="text-sm w-10 text-right text-logitech-text-secondary">14pt</span>
+                            </div>
+                        </div>
+                         <button id="resetSettings" class="w-full px-4 py-2.5 rounded-logitech focus:outline-none focus:ring-2 focus:ring-logitech-purple-400 focus:ring-offset-2 text-sm bg-logitech-purple-600 hover:bg-logitech-purple-700 text-white transition-colors">Reset to Defaults</button>
+                    </div>
+                    <div class="space-y-3">
+                        <h3 class="text-lg font-semibold border-b pb-2 text-logitech-text-primary border-logitech-light-border-light">Acceleration Graph Preview</h3>
+                        <p class="text-xs text-logitech-text-secondary">Visualizes speed (repeats/sec) over time (seconds) based on current settings.</p>
+                        <canvas id="accelerationGraph" class="w-full h-64 border rounded-logitech bg-logitech-light-bg-secondary border-logitech-light-border-medium"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const ArrowKeyAccelerator = {
+            settings: {
+                isEnabled: true,
+                accelerationCurve: 2.0,
+                baseDelay: 30,      
+                minDelay: 5,        
+                activationThreshold: 300, 
+                fontSize: 14 
+            },
+            defaultSettings: {}, 
+            state: {
+                pressedKeys: {}, 
+                textarea: null,
+                animationFrameId: null,
+                enableToggle: null,      
+                accelerationCurveSlider: null, accelerationCurveValue: null,
+                activationThresholdSlider: null, activationThresholdValue: null,
+                baseDelaySlider: null, baseDelayValue: null,
+                minDelaySlider: null, minDelayValue: null,
+                fontSizeSlider: null, fontSizeValue: null,
+                currentSpeedDisplay: null, currentDelayDisplay: null,
+                activationTimeDisplay: null, 
+                graphCanvas: null,
+                graphCtx: null,
+                resizeTimeout: null, 
+            },
+            demoCode: `// Enhanced Arrow Keys - Logitech Options+ Design
+// Hold an arrow key to experience acceleration!
+// Adjust settings in the 'Settings' tab.
+
+function setupEditor() {
+  const editor = getElementById('codeEditor');
+  editor.theme = 'LogitechLight'; // Placeholder
+  // Font size is applied dynamically by the slider
+}
+
+class VelocityControl {
+  constructor(curve, threshold) {
+    this.accelerationCurve = curve;
+    this.activationThreshold = threshold; // ms
+    this.currentSpeed = 0;
+  }
+
+  start() {
+    console.log(\`Acceleration enabled with threshold: \${this.activationThreshold}ms\`);
+  }
+}
+
+const controller = new VelocityControl(
+  ArrowKeyAccelerator.settings.accelerationCurve, 
+  ArrowKeyAccelerator.settings.activationThreshold 
+);
+controller.start();
+
+// This sample text is designed for testing navigation.
+// Try moving up, down, left, and right.
+// The experience should be smooth and responsive.
+// Enjoy the new Logitech Options+ inspired look!
+`,
+
+            init() {
+                this.defaultSettings = { ...this.settings };
+
+                this.state.textarea = document.getElementById('demoTextarea');
+                this.state.enableToggle = document.getElementById('enableToggle'); 
+                
+                this.state.accelerationCurveSlider = document.getElementById('accelerationCurve');
+                this.state.accelerationCurveValue = document.getElementById('accelerationCurveValue');
+                this.state.activationThresholdSlider = document.getElementById('activationThreshold');
+                this.state.activationThresholdValue = document.getElementById('activationThresholdValue');
+                this.state.baseDelaySlider = document.getElementById('baseDelay');
+                this.state.baseDelayValue = document.getElementById('baseDelayValue');
+                this.state.minDelaySlider = document.getElementById('minDelay');
+                this.state.minDelayValue = document.getElementById('minDelayValue');
+                
+                this.state.fontSizeSlider = document.getElementById('fontSizeSlider');
+                this.state.fontSizeValue = document.getElementById('fontSizeValue');
+                
+                const resetButton = document.getElementById('resetSettings');
+                if(resetButton) resetButton.addEventListener('click', this.resetSettings.bind(this));
+
+                this.state.currentSpeedDisplay = document.getElementById('currentSpeedDisplay');
+                this.state.currentDelayDisplay = document.getElementById('currentDelayDisplay');
+                this.state.activationTimeDisplay = document.getElementById('activationTimeDisplay');
+
+                this.state.graphCanvas = document.getElementById('accelerationGraph');
+                if (this.state.graphCanvas) {
+                    this.state.graphCtx = this.state.graphCanvas.getContext('2d');
+                }
+                
+                if(this.state.textarea) this.state.textarea.value = this.demoCode;
+
+                this.loadSettingsFromLocalStorage(); 
+                this.updateEnableToggleUI();         
+                this.updateAllSettingsUI(); 
+                this.drawAccelerationGraph();
+                this.updateTryItOutBanner();
+
+                if(this.state.textarea) {
+                    this.state.textarea.addEventListener('keydown', this.handleKeyDown.bind(this));
+                    this.state.textarea.addEventListener('keyup', this.handleKeyUp.bind(this));
+                }
+                
+                if (this.state.enableToggle) {
+                    this.state.enableToggle.addEventListener('change', (e) => {
+                        this.settings.isEnabled = e.target.checked;
+                        // UI update for toggle is now CSS driven by :checked state
+                        this.saveSettingsToLocalStorage();
+                         if (!this.settings.isEnabled) { 
+                            this.state.pressedKeys = {};
+                            if (this.state.animationFrameId) {
+                                cancelAnimationFrame(this.state.animationFrameId);
+                                this.state.animationFrameId = null;
+                            }
+                            this.updateSpeedAndDelayDisplay(0, 'N/A');
+                        }
+                    });
+                }
+
+                this.setupSettingControls();
+                this.setupTabs();
+            },
+            
+            updateTryItOutBanner() {
+                if (this.state.activationTimeDisplay) {
+                    const seconds = (this.settings.activationThreshold / 1000).toFixed(1);
+                    this.state.activationTimeDisplay.textContent = seconds;
+                }
+            },
+
+            updateEnableToggleUI() {
+                if (!this.state.enableToggle) return; 
+                this.state.enableToggle.checked = this.settings.isEnabled;
+            },
+            
+            setupSettingControls() {
+                const controls = [
+                    { slider: this.state.accelerationCurveSlider, valueDisplay: this.state.accelerationCurveValue, settingKey: 'accelerationCurve', unit: '', fixed: 1 },
+                    { slider: this.state.activationThresholdSlider, valueDisplay: this.state.activationThresholdValue, settingKey: 'activationThreshold', unit: 'ms', fixed: 0, callback: this.updateTryItOutBanner.bind(this) },
+                    { slider: this.state.baseDelaySlider, valueDisplay: this.state.baseDelayValue, settingKey: 'baseDelay', unit: 'ms', fixed: 0 },
+                    { slider: this.state.minDelaySlider, valueDisplay: this.state.minDelayValue, settingKey: 'minDelay', unit: 'ms', fixed: 0 },
+                    { slider: this.state.fontSizeSlider, valueDisplay: this.state.fontSizeValue, settingKey: 'fontSize', unit: 'pt', fixed: 0, callback: (value) => {
+                        if(this.state.textarea) this.state.textarea.style.fontSize = `${value}px`;
+                    }},
+                ];
+
+                controls.forEach(control => {
+                    if (control.slider && control.valueDisplay) { 
+                        control.slider.addEventListener('input', (e) => {
+                            const value = parseFloat(e.target.value);
+                            this.settings[control.settingKey] = value;
+                            control.valueDisplay.textContent = `${value.toFixed(control.fixed)}${control.unit}`;
+                            
+                            if (control.settingKey !== 'fontSize') { 
+                                this.drawAccelerationGraph();
+                            }
+                            if (control.callback) {
+                                control.callback(value);
+                            }
+                            this.saveSettingsToLocalStorage();
+                        });
+                    }
+                });
+            },
+            
+            updateAllSettingsUI() {
+                if (this.state.accelerationCurveSlider && this.state.accelerationCurveValue) {
+                    this.state.accelerationCurveSlider.value = this.settings.accelerationCurve;
+                    this.state.accelerationCurveValue.textContent = `${this.settings.accelerationCurve.toFixed(1)}`;
+                }
+                if (this.state.activationThresholdSlider && this.state.activationThresholdValue) {
+                    this.state.activationThresholdSlider.value = this.settings.activationThreshold;
+                    this.state.activationThresholdValue.textContent = `${this.settings.activationThreshold}ms`;
+                }
+                if (this.state.baseDelaySlider && this.state.baseDelayValue) {
+                    this.state.baseDelaySlider.value = this.settings.baseDelay;
+                    this.state.baseDelayValue.textContent = `${this.settings.baseDelay}ms`;
+                }
+                if (this.state.minDelaySlider && this.state.minDelayValue) {
+                    this.state.minDelaySlider.value = this.settings.minDelay;
+                    this.state.minDelayValue.textContent = `${this.settings.minDelay}ms`;
+                }
+                if (this.state.fontSizeSlider && this.state.fontSizeValue) {
+                    this.state.fontSizeSlider.value = this.settings.fontSize;
+                    this.state.fontSizeValue.textContent = `${this.settings.fontSize}pt`;
+                    if(this.state.textarea) this.state.textarea.style.fontSize = `${this.settings.fontSize}px`;
+                }
+                this.updateTryItOutBanner(); 
+            },
+
+            resetSettings() {
+                this.settings = { ...this.defaultSettings }; 
+                this.updateAllSettingsUI(); 
+                this.drawAccelerationGraph();
+                this.saveSettingsToLocalStorage();
+                this.updateEnableToggleUI(); 
+            },
+
+            saveSettingsToLocalStorage() {
+                localStorage.setItem('enhancedArrowKeysSettings_LogiPurple_v3', JSON.stringify(this.settings)); 
+            },
+
+            loadSettingsFromLocalStorage() {
+                const saved = localStorage.getItem('enhancedArrowKeysSettings_LogiPurple_v3'); 
+                if (saved) {
+                    try {
+                        const parsedSettings = JSON.parse(saved);
+                        const requiredKeys = ['isEnabled', 'accelerationCurve', 'baseDelay', 'minDelay', 'activationThreshold', 'fontSize'];
+                        const allKeysPresent = requiredKeys.every(key => typeof parsedSettings[key] !== 'undefined');
+                        
+                        if (allKeysPresent && 
+                            typeof parsedSettings.isEnabled === 'boolean' &&
+                            typeof parsedSettings.accelerationCurve === 'number' &&
+                            typeof parsedSettings.baseDelay === 'number' &&
+                            typeof parsedSettings.minDelay === 'number' &&
+                            typeof parsedSettings.activationThreshold === 'number' &&
+                            typeof parsedSettings.fontSize === 'number' ) {
+                            this.settings = parsedSettings;
+                        } else {
+                             this.settings = { ...this.defaultSettings }; 
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse saved settings, using defaults.", e);
+                        this.settings = { ...this.defaultSettings }; 
+                    }
+                } else {
+                     this.settings = { ...this.defaultSettings }; 
+                }
+            },
+
+            setupTabs() {
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const tabContents = document.querySelectorAll('.tab-content');
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const targetTab = button.dataset.tab;
+
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+
+                        tabContents.forEach(content => {
+                            if (content.id === `${targetTab}Tab`) {
+                                content.classList.remove('hidden');
+                                if (targetTab === 'settings') { 
+                                    this.drawAccelerationGraph();
+                                }
+                            } else {
+                                content.classList.add('hidden');
+                            }
+                        });
+                    });
+                });
+                if (tabButtons.length > 0) {
+                    const demoTabButton = document.querySelector('.tab-button[data-tab="demo"]');
+                    if (demoTabButton) demoTabButton.click();
+                }
+            },
+
+            handleKeyDown(event) {
+                if (!this.settings.isEnabled) return;
+                const key = event.key;
+                if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(key)) return;
+                
+                event.preventDefault(); 
+                event.stopPropagation(); 
+
+                if (!this.state.pressedKeys[key]) { 
+                    const now = Date.now();
+                    
+                    this.moveCursor(key); 
+                    this.updateSpeedAndDelayDisplay(0, 'Tap');  
+
+                    this.state.pressedKeys[key] = {
+                        startTime: now, 
+                        nextMoveTime: now + this.settings.activationThreshold, 
+                    };
+
+                    if (!this.state.animationFrameId) {
+                         this.state.animationFrameId = requestAnimationFrame(this.updateLoop.bind(this));
+                    }
+                }
+            },
+
+            handleKeyUp(event) {
+                const key = event.key;
+                if (this.state.pressedKeys[key]) {
+                    delete this.state.pressedKeys[key];
+                    if (Object.keys(this.state.pressedKeys).length === 0 && this.state.animationFrameId) {
+                        cancelAnimationFrame(this.state.animationFrameId);
+                        this.state.animationFrameId = null;
+                        this.updateSpeedAndDelayDisplay(0, 'N/A'); 
+                    }
+                }
+            },
+
+            updateLoop() {
+                if (Object.keys(this.state.pressedKeys).length === 0) {
+                     this.state.animationFrameId = null; 
+                    return;
+                }
+
+                const now = Date.now();
+
+                for (const key in this.state.pressedKeys) {
+                    const keyState = this.state.pressedKeys[key];
+
+                    if (now >= keyState.nextMoveTime) { 
+                        this.moveCursor(key); 
+
+                        const elapsedSinceKeyDown = now - keyState.startTime; 
+                        const timeIntoAcceleration = Math.max(0, (elapsedSinceKeyDown - this.settings.activationThreshold)) / 1000.0;
+                        const accelerationFactor = Math.pow(timeIntoAcceleration, 1.0 / this.settings.accelerationCurve);
+                        
+                        const currentCalculatedDelay = Math.max(
+                            this.settings.minDelay,
+                            this.settings.baseDelay / (1 + accelerationFactor)
+                        );
+                        
+                        keyState.nextMoveTime = now + currentCalculatedDelay; 
+                        this.updateSpeedAndDelayDisplay(1000 / currentCalculatedDelay, currentCalculatedDelay);
+                    }
+                }
+                
+                this.state.animationFrameId = requestAnimationFrame(this.updateLoop.bind(this));
+            },
+            
+            updateSpeedAndDelayDisplay(speed, delay) {
+                if (this.state.currentSpeedDisplay && this.state.currentDelayDisplay) {
+                    this.state.currentSpeedDisplay.textContent = speed.toFixed(2);
+                    this.state.currentDelayDisplay.textContent = typeof delay === 'string' ? delay : (typeof delay === 'number' ? delay.toFixed(2) + 'ms' : 'N/A');
+                }
+            },
+
+            moveCursor(key) {
+                const textarea = this.state.textarea;
+                if (!textarea) return;
+                let pos = textarea.selectionStart;
+                const text = textarea.value;
+
+                switch (key) {
+                    case 'ArrowLeft':
+                        pos = Math.max(0, pos - 1);
+                        break;
+                    case 'ArrowRight':
+                        pos = Math.min(text.length, pos + 1);
+                        break;
+                    case 'ArrowUp': {
+                        const textToCursor = text.substring(0, pos);
+                        let lastNewlineBeforeCursor = textToCursor.lastIndexOf('\n');
+                        
+                        if (pos === 0 && text.startsWith('\n')) { 
+                            return; 
+                        } else if (lastNewlineBeforeCursor === -1 && pos === 0) { 
+                            return;
+                        }
+                        
+                        const currentCol = pos - (lastNewlineBeforeCursor === -1 ? 0 : lastNewlineBeforeCursor + 1);
+                        
+                        let textBeforePrevLineContentStart = text.substring(0, lastNewlineBeforeCursor === -1 ? 0 : lastNewlineBeforeCursor);
+                        const prevNewline = textBeforePrevLineContentStart.lastIndexOf('\n');
+                        const prevLineStart = prevNewline === -1 ? 0 : prevNewline + 1;
+                        
+                        const prevLineEnd = lastNewlineBeforeCursor === -1 ? 0 : lastNewlineBeforeCursor;
+                        const prevLineText = text.substring(prevLineStart, prevLineEnd);
+                        
+                        pos = prevLineStart + Math.min(currentCol, prevLineText.length);
+                        break;
+                    }
+                    case 'ArrowDown': {
+                        let endOfCurrentLine = text.indexOf('\n', pos);
+                        if (endOfCurrentLine === -1 && pos === text.length) { 
+                            return;
+                        }
+                         if (endOfCurrentLine === -1) { 
+                            endOfCurrentLine = text.length; 
+                            if (pos === endOfCurrentLine && text.length > 0) return; 
+                             else if (pos === endOfCurrentLine && text.length === 0) return; 
+                        }
+
+
+                        const textToCursor = text.substring(0, pos);
+                        const lastNewlineBeforeCursor = textToCursor.lastIndexOf('\n');
+                        const currentCol = pos - (lastNewlineBeforeCursor === -1 ? 0 : lastNewlineBeforeCursor + 1);
+
+                        const nextLineStart = endOfCurrentLine + 1;
+                        if (nextLineStart > text.length && endOfCurrentLine < text.length) { 
+                             return; 
+                        } else if (nextLineStart > text.length) { 
+                            return;
+                        }
+
+
+                        let endOfNextLine = text.indexOf('\n', nextLineStart);
+                        if (endOfNextLine === -1) endOfNextLine = text.length; 
+
+                        const nextLineLength = endOfNextLine - nextLineStart;
+                        pos = nextLineStart + Math.min(currentCol, nextLineLength);
+                        break;
+                    }
+                }
+                textarea.setSelectionRange(pos, pos);
+                textarea.focus(); 
+                const lineHeight = parseFloat(window.getComputedStyle(textarea).lineHeight) || 16; 
+                const numberOfLinesToCursor = text.substring(0, pos).split('\n').length;
+                const cursorScrollTop = (numberOfLinesToCursor -1) * lineHeight;
+
+                if (textarea.scrollTop > cursorScrollTop - lineHeight) { 
+                    textarea.scrollTop = Math.max(0, cursorScrollTop - lineHeight);
+                } else if (textarea.scrollTop < cursorScrollTop - textarea.clientHeight + 2 * lineHeight) { 
+                    textarea.scrollTop = cursorScrollTop - textarea.clientHeight + 2 * lineHeight;
+                }
+            },
+
+            drawAccelerationGraph() {
+                if (!this.state.graphCtx || !this.state.graphCanvas) return;
+                const ctx = this.state.graphCtx;
+                const canvas = this.state.graphCanvas;
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                ctx.scale(dpr, dpr); 
+
+                const width = rect.width; 
+                const height = rect.height;
+
+                ctx.clearRect(0, 0, width, height);
+
+                const gridColor = tailwind.config.theme.extend.colors.logitech.light.border.medium; 
+                const textColor = tailwind.config.theme.extend.colors.logitech.text.secondary;   
+                const linePrimaryColor = tailwind.config.theme.extend.colors.logitech.purple[600];
+                const lineSecondaryColor = tailwind.config.theme.extend.colors.logitech.gray[700];
+
+
+                ctx.strokeStyle = gridColor; 
+                ctx.fillStyle = textColor;   
+                ctx.lineWidth = 1;
+                ctx.font = `10px ${tailwind.config.theme.extend.fontFamily.sans[0] || 'Poppins'}`;
+
+
+                const padding = 35; 
+                const graphWidth = width - padding - 15; 
+                const graphHeight = height - 2 * padding;
+
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, height - padding); 
+                ctx.lineTo(width - 15, height - padding); 
+                ctx.stroke();
+
+                const maxTime = 3; 
+                const maxSpeed = Math.max(1, 1000 / this.settings.minDelay); 
+
+                ctx.textAlign = "center";
+                for (let i = 0; i <= maxTime; i++) {
+                    const x = padding + (i / maxTime) * (graphWidth - padding); 
+                    ctx.moveTo(x, height - padding);
+                    ctx.lineTo(x, height - padding + 5);
+                    ctx.fillText(`${i}s`, x, height - padding + 18);
+                }
+                ctx.fillText('Time (s)', padding + (graphWidth - padding) / 2, height - 5);
+                
+                ctx.textAlign = "right";
+                const numSpeedTicks = 5;
+                for (let i = 0; i <= numSpeedTicks; i++) {
+                    const speedVal = (i / numSpeedTicks) * maxSpeed;
+                    const y = height - padding - (speedVal / maxSpeed) * graphHeight;
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(padding - 5, y);
+                    ctx.fillText(speedVal.toFixed(0), padding - 10, y + 4);
+                }
+                ctx.save();
+                ctx.translate(12, padding + graphHeight / 2);
+                ctx.rotate(-Math.PI/2);
+                ctx.textAlign = "center";
+                ctx.fillText('Speed (ops/s)',0,0);
+                ctx.restore();
+
+                ctx.beginPath();
+                ctx.strokeStyle = linePrimaryColor; 
+                ctx.lineWidth = 2;
+
+                let firstPoint = true;
+                for (let t_ms = 0; t_ms <= maxTime * 1000; t_ms += 20) { 
+                    const t_s = t_ms / 1000.0;
+                    let currentDelay;
+                    let speed;
+
+                    if (t_ms < this.settings.activationThreshold) {
+                        speed = 0; 
+                    } else {
+                        const timeIntoAcceleration_graph = (t_ms - this.settings.activationThreshold) / 1000.0; 
+                        const accelerationFactor_graph = Math.pow(Math.max(0, timeIntoAcceleration_graph), 1.0 / this.settings.accelerationCurve);
+                        currentDelay = Math.max(
+                            this.settings.minDelay,
+                            this.settings.baseDelay / (1 + accelerationFactor_graph)
+                        );
+                        speed = 1000 / currentDelay;
+                    }
+                    
+                    const x = padding + (t_s / maxTime) * (graphWidth - padding); 
+                    const y = height - padding - Math.min(1, (speed / maxSpeed)) * graphHeight; 
+
+                    if (firstPoint) {
+                        ctx.moveTo(x, y);
+                        firstPoint = false;
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+
+                const threshold_s = this.settings.activationThreshold / 1000;
+                if (threshold_s <= maxTime) {
+                    const threshold_x = padding + (threshold_s / maxTime) * (graphWidth - padding); 
+                    if (threshold_x >= padding && threshold_x <= width - 15) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = lineSecondaryColor; 
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([5, 3]);
+                        ctx.moveTo(threshold_x, padding);
+                        ctx.lineTo(threshold_x, height - padding);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.fillStyle = lineSecondaryColor;
+                        ctx.textAlign = "center";
+                        ctx.fillText('Activation', threshold_x, padding - 8);
+                    }
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            ArrowKeyAccelerator.init();
+            window.addEventListener('resize', () => {
+                if(ArrowKeyAccelerator.state.resizeTimeout) {
+                    clearTimeout(ArrowKeyAccelerator.state.resizeTimeout);
+                }
+                ArrowKeyAccelerator.state.resizeTimeout = setTimeout(() => {
+                    ArrowKeyAccelerator.drawAccelerationGraph();
+                }, 100);
+            });
+        });
+
+    </script>
+</body>
+</html>
